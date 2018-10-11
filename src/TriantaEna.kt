@@ -1,6 +1,6 @@
 import kotlin.system.exitProcess
 
-class Blackjack : CardGame() {
+class TriantaEna: CardGame() {
     val players = mutableListOf(Player())
     var playerBusted = false
     var dealerBusted = false
@@ -253,3 +253,4 @@ class Blackjack : CardGame() {
         }
     }
 }
+
