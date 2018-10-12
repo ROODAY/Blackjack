@@ -54,5 +54,4 @@ abstract class CardGame {
     abstract fun runPlayerTurn(player: Player, deck: Deck)
     abstract fun runDealerTurn(dealer: Dealer, deck: Deck)
     abstract fun compareHands(players: MutableList<Player>)
-    //abstract fun calculateHandValue(hand: Hand): Int
 }
