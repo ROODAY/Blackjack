@@ -37,7 +37,10 @@ abstract class CardGame {
         initPlayers(gameName, startCash)
 
         while (true) {
-            if (players.size <= 0) exitProcess(0)
+            if (players.size <= 0 || (players.size == 1 && players[0] is Dealer)) {
+                println("No players left! Game Over!")
+                exitProcess(0)
+            }
             if (players.find { it is Dealer }?.money!! <= 0) {
                 println("Dealer is out of cash! Game Over!")
                 exitProcess(0)
