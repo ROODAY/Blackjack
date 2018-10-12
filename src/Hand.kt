@@ -49,6 +49,15 @@ class Hand(card: Card?) {
         return nat
     }
 
+    fun isNaturalTriantaEna(): Boolean {
+        return (cards.count {it.getNumVal() == 0} == 1 && cards.count {it.getNumVal() in 10..12} == 2)
+    }
+
+    fun isSuit14(): Boolean {
+        val suit = cards[0].getSuit()
+        return (value == 14 && cards.all {it.getSuit() == suit})
+    }
+
     override fun toString(): String {
         var hand = ""
         for (card in cards) hand += "$card\n"

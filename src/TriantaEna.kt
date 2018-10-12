@@ -1,205 +1,169 @@
 import kotlin.system.exitProcess
 
 class TriantaEna: CardGame() {
-    val players = mutableListOf(Player())
-    var playerBusted = false
-    var dealerBusted = false
-    var bet = 0
 
-    override fun run() {
-        initPlayers()
-        while (true) {
-            val player = players.find { it !is Dealer } as Player
-            if (player.money <= 0) {
-                println("You've ran out of money! Game Over!")
-                println("Thanks for playing!")
-                exitProcess(0)
+    override fun calculateHandValue(hand: Hand): Int {
+        return 1
+    }
+
+    override fun dealCards(players: MutableList<Player>, deck: Deck, cardsToDeal: Int) {
+        for (player in players) {
+            for (i in 1..cardsToDeal) player.hand.add(deck.draw())
+            if (player is Dealer) {
+                println("Dealer's Hand (${player.hand.value}):")
             } else {
-                println("New round!")
-                runRound(Deck())
+                println("Player ${player.id}'s Hand (${player.hand.value}):")
             }
+            println(player.hand)
+            println("Press enter to continue...")
+            readLine()
+            println("\n\n\n\n\n\n\n\n\n\n\n\n")
         }
     }
 
-    fun initPlayers() {
-        println("Welcome to Blackjack! How many players? (1 or 2)")
-        var choosing = true
-        while (choosing) {
-            when (readLine()) {
-                "1" -> {
-                    players.add(Dealer(true))
-                    choosing = false
-                }
-                "2" -> {
-                    players.add(Dealer(false))
-                    players.shuffle()
-                    if (players[0] is Dealer) println("Player 1 is the Dealer!")
-                    else println("Player 2 is the Dealer!")
-                    choosing = false
-                }
-                else -> println("Invalid input! Please try again.")
+    override fun runRound(deck: Deck) {
+        // Reset players for new round
+        for (player in players) {
+            player.reset()
+        }
+
+        println("Dealing Cards:")
+        dealCards(players, deck, 1)
+
+        // Show Dealer card to players
+        (players.find { it is Dealer } as Dealer).showFirstCard()
+
+        println("Collecting Player Bets:")
+        for (player in players) {
+            if (player !is Dealer) {
+                setPlayerBet(player)
             }
         }
+        println("\n\n\n\n\n\n\n\n\n\n\n\n")
+
+        println("Dealing more cards:")
+        for (player in players) {
+            if (player !is Dealer && !player.folded) {
+                player.hand.add(deck.draw())
+                player.hand.add(deck.draw())
+                println("Player ${player.id}'s Hand (${player.hand.value}):")
+                println(player.hand)
+                println("Press enter to continue...")
+                readLine()
+                println("\n\n\n\n\n\n\n\n\n\n\n\n")
+            }
+        }
+
+        println("Running player turns:")
+        for (player in players) {
+            if (player !is Dealer) {
+                runPlayerTurn(player, deck)
+            }
+        }
+        println("\n\n\n\n\n\n\n\n\n\n\n\n")
+
+        println("Dealer's hand (${players.find { it is Dealer }?.hand?.value}):")
+        println(players.find { it is Dealer }?.hand)
+        runDealerTurn(players.find { it is Dealer } as Dealer, deck)
+        println("\n\n\n\n\n\n\n\n\n\n\n\n")
+
+        compareHands(players)
+        println("\n\n\n\n\n\n\n\n\n\n\n\n")
+
+        rotateDealer(players)
     }
 
-    fun runRound(deck: Deck) {
-        val player = players.find { it !is Dealer } as Player
-        val dealer = players.find { it is Dealer } as Dealer
-
-        player.resetHands()
-        dealer.resetHands()
-
-        println("Player, what is your bet? (You currently have $${player.money})")
+    override fun setPlayerBet(player: Player) {
+        println("Player ${player.id}, what is your bet? (You currently have $${player.money}) Your Hand (${player.hand.value}):")
+        println(player.hand)
+        println("You may also type \"fold\" to skip this round.")
         var betting = true
         while (betting) {
             try {
-                val input = readLine()?.toInt() as Int
-                if (input <= player.money) {
-                    bet = input
-                    println("Bet set at $$bet!")
+                val input = readLine()
+                if (input == "fold") {
+                    println("Folded! Skipping you for this round.")
+                    player.folded = true
                     betting = false
-                } else println("You don't have enough money for that bet!")
+                } else {
+                    val betValue = input?.toInt() as Int
+                    if (betValue <= player.money) {
+                        player.bet = betValue
+                        println("Bet set at $$betValue!")
+                        betting = false
+                    } else println("You don't have enough money for that bet!")
+                }
             } catch (e: NumberFormatException){
                 println("Invalid input! Try again.")
             }
         }
-
-        for (i in 1..2) {
-            player.hand.add(deck.draw())
-            dealer.hand.add(deck.draw())
-        }
-
-        dealer.showFirstCard()
-
-        runPlayerTurn(player, deck)
-
-        if (!playerBusted) runDealerTurn(player, dealer, deck)
-
-        if (!playerBusted && !dealerBusted) compareHands(player, dealer)
     }
 
-    fun runPlayerTurn(player: Player, deck: Deck) {
-        var handsInterator = player.hands.listIterator()
-        while (handsInterator.hasNext()) {
-            val hand = handsInterator.next()
-            val handIndex = player.hands.indexOf(hand)
-            println("Hand ${handIndex + 1} (${hand.value}):")
-            println(hand)
+    override fun runPlayerTurn(player: Player, deck: Deck) {
+        println("Your turn, Player ${player.id}! Your hand (${player.hand.value}):")
+        println(player.hand)
+        var playing = true
+        while (playing) {
+            Player.printPlayerOptions(mutableListOf("Hit", "Stand", "Quit"))
+            when (readLine()) {
+                "1" -> {
+                    println("Hitting:")
+                    player.hand.add(deck.draw())
+                    println("Hand is now (${player.hand.value}):")
+                    println(player.hand)
 
-            var playingHand = true
-            while (playingHand) {
-                Player.printPlayerOptions()
-                when (readLine()) {
-                    "1" -> {
-                        hand.add(deck.draw())
-                        println("Hand is now (${hand.value}):")
-                        println(hand)
-
-                        if (hand.value == 21) {
-                            println("Hand value is 21, stopping turn.")
-                            playingHand = false
-                        } else if (hand.value > 21) {
-                            println("Hand value is ${hand.value}, bust!")
-                            player.money -= bet
-                            if (player.money <= 0) {
-                                println("You've ran out of money! Game Over!")
-                                println("Thanks for playing!")
-                                exitProcess(0)
-                            }
-                            println("Ending hand.")
-                            playingHand = false
+                    if (player.hand.value == 31) {
+                        println("Hand value is 31, stopping turn.")
+                        playing = false
+                    } else if (player.hand.value > 31) {
+                        println("Hand value is ${player.hand.value}, bust!")
+                        player.money -= player.bet
+                        players.find { it is Dealer }?.money?.plus(player.bet)
+                        player.busted = true
+                        if (player.money <= 0) {
+                            println("You've ran out of money!")
+                            players.remove(player)
                         }
+                        playing = false
                     }
-                    "2" -> {
-                        println("Your hand value is ${hand.value}.")
-                        playingHand = false
-                    }
-                    "3" -> {
-                        if (hand.canSplit()) {
-                            val hands = hand.split()
-                            hands.first.add(deck.draw())
-                            hands.second.add(deck.draw())
-
-                            handsInterator.remove()
-                            handsInterator.add(hands.first)
-                            handsInterator.add(hands.second)
-                            handsInterator = player.hands.listIterator()
-
-                            playingHand = false
-                        } else {
-                            println("You can't split any of your hands!")
-                        }
-                    }
-                    "4" -> {
-                        if (player.money >= bet * 2) {
-                            bet *= 2
-                            println("Bet is now $$bet!")
-                            hand.add(deck.draw())
-                            println("Hand is now (${hand.value}):")
-                            println(hand)
-
-                            if (hand.value > 21) {
-                                println("Hand value is ${hand.value}, bust!")
-                                println("Player loses $$bet!")
-                                player.money -= bet
-                                if (player.money <= 0) {
-                                    println("You've ran out of money! Game Over!")
-                                    exitProcess(0)
-                                }
-                            }
-
-                            println("Ending hand.")
-                            playingHand = false
-                        } else {
-                            println("You don't have enough money to double up!")
-                        }
-                    }
-                    "5", "q", "Q" -> {
-                        println("Thanks for playing!")
-                        exitProcess(0)
-                    }
-                    else -> println("Invalid input! Please try again.")
                 }
+                "2" -> {
+                    println("Standing:")
+                    println("Your hand value is ${player.hand.value}.")
+                    playing = false
+                }
+                "3" -> {
+                    println("Thanks for playing!")
+                    players.remove(player)
+                }
+                else -> println("Invalid input! Please try again.")
             }
         }
 
-        playerBusted = true
-        for (hand in player.hands) {
-            if (hand.value <= 21) {
-                playerBusted = false
-                break
-            }
-        }
     }
 
-    fun runDealerTurn(player: Player, dealer: Dealer, deck: Deck) {
-        dealerBusted = false
-        println("Dealer's turn. Dealer's hand (${dealer.hand.value}):")
-        println(dealer.hand)
-
+    override fun runDealerTurn(dealer: Dealer, deck: Deck) {
+        println("Dealer's turn!")
         if (dealer.getIsAI()) {
-            dealer.autoRunTurn(deck)
-            if (dealer.hand.value > 21) {
-                println("Dealer has busted! Player wins round!")
-                dealerBusted = true
-                player.money += bet * 2
-                return
+            dealer.autoRunTurn(deck, 27)
+            if (dealer.hand.value > 31) {
+                println("Dealer has busted!")
+                dealer.busted = true
             }
-        } else if (dealer.hand.value < 17) {
+        } else if (dealer.hand.value < 27) {
             var dealerPlaying = true
             while (dealerPlaying) {
-                Dealer.printDealerOptions()
+                Player.printPlayerOptions(mutableListOf("Hit", "Stand", "Quit"))
                 when (readLine()) {
                     "1" -> {
                         dealer.hand.add(deck.draw())
                         println("Hand is now (${dealer.hand.value}):")
                         println(dealer.hand)
-                        if (dealer.hand.value > 21) {
-                            println("Dealer has busted! Player wins the round!")
-                            dealerBusted = true
-                            player.money += bet
-                            return
-                        } else if (dealer.hand.value >= 17) {
+                        if (dealer.hand.value > 31) {
+                            println("Dealer has busted!")
+                            dealer.busted = true
+                            dealerPlaying = false
+                        } else if (dealer.hand.value >= 27) {
                             println("Dealer must stop.")
                             dealerPlaying = false
                         }
@@ -218,37 +182,92 @@ class TriantaEna: CardGame() {
         println("Dealer's turn over.")
     }
 
-    fun compareHands(player: Player, dealer: Dealer) {
+    override fun compareHands(players: MutableList<Player>) {
         println("Comparing hands:")
 
-        for ((index, hand) in player.hands.iterator().withIndex()) {
-            if (hand.value > 21) {
-                println("Hand ${index + 1} busted, skipping.")
-                continue
-            }
-            when {
-                hand.value > dealer.hand.value -> {
-                    println("Hand ${index + 1} beats the dealer! Player wins $${bet * 2}!")
-                    player.money += bet * 2
-                }
-                hand.value < dealer.hand.value -> {
-                    println("Hand ${index + 1} loses to the dealer! Player loses $$bet!")
-                    player.money -= bet
-                }
-                hand.value == 21 && hand.value == dealer.hand.value -> {
-                    when {
-                        hand.isNaturalBlackjack() -> {
-                            println("Hand ${index + 1} beats the dealer! Player wins $${bet * 2}!")
-                            player.money += bet * 2
+        val dealer = players.find { it is Dealer } as Dealer
+
+        for (player in players) {
+            if (player !is Dealer && !player.busted) {
+                when {
+                    dealer.busted -> {
+                        println("Player ${player.id} beats the Dealer!")
+                        player.money += player.bet
+                        dealer.money -= player.bet
+                    }
+                    player.hand.isSuit14() -> {
+                        println("Player ${player.id} beats the Dealer!")
+                        player.money += player.bet
+                        dealer.money -= player.bet
+                    }
+                    dealer.hand.isSuit14() -> {
+                        println("Player ${player.id} loses to the Dealer!")
+                        dealer.money += player.bet
+                        player.money -= player.bet
+                    }
+                    player.hand.value > dealer.hand.value -> {
+                        println("Player ${player.id} beats the Dealer!")
+                        player.money += player.bet
+                        dealer.money -= player.bet
+                    }
+                    player.hand.value < dealer.hand.value -> {
+                        println("Player ${player.id} loses to the Dealer!")
+                        dealer.money += player.bet
+                        player.money -= player.bet
+                    }
+                    player.hand.value == 31 && player.hand.value == dealer.hand.value -> {
+                        when {
+                            player.hand.isNaturalTriantaEna() -> {
+                                println("Player ${player.id} beats the Dealer!")
+                                player.money += player.bet
+                                dealer.money -= player.bet
+                            }
+                            dealer.hand.isNaturalTriantaEna() -> {
+                                println("Player ${player.id} loses to the Dealer!")
+                                dealer.money += player.bet
+                                player.money -= player.bet
+                            }
+                            else -> {
+                                println("Player ${player.id} ties with the Dealer! Dealer wins!")
+                                dealer.money += player.bet
+                                player.money -= player.bet
+                            }
                         }
-                        dealer.hand.isNaturalBlackjack() -> {
-                            println("Hand ${index + 1} loses to the dealer! Player loses $$bet!")
-                            player.money -= bet
-                        }
-                        else -> println("Hand ${index + 1} results in a draw!")
+                    }
+                    else -> {
+                        println("Player ${player.id} ties with the Dealer! Dealer wins!")
+                        dealer.money += player.bet
+                        player.money -= player.bet
                     }
                 }
-                else -> println("Hand ${index + 1} results in a draw!")
+            }
+        }
+    }
+
+    private fun rotateDealer(players: MutableList<Player>) {
+        val dealer = players.find { it is Dealer } as Dealer
+        val potentialDealers = players.asSequence().filter { it !is Dealer && it.money > dealer.money }.sortedBy { it.money }.toList()
+
+        if (potentialDealers.isNotEmpty()) println("Rotating Dealer:")
+
+        for (potentialDealer in potentialDealers) {
+            println("Player ${potentialDealer.id}, would you like to be the dealer? (Y/N)")
+            var deciding = true
+            while (deciding) {
+                when (readLine()) {
+                    "Y", "y" -> {
+                        players.remove(dealer)
+                        players.remove(potentialDealer)
+                        println("Player ${potentialDealer.id} is now the Dealer! Old Dealer is Player ${dealer.id}.")
+                        players.add(Player(dealer.id, dealer.money))
+                        players.add(Dealer(false, potentialDealer.id, potentialDealer.money))
+                        return
+                    }
+                    "N", "n" -> {
+                        deciding = false
+                    }
+                    else -> println("Invalid input! Try again!")
+                }
             }
         }
     }

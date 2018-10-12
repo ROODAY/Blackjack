@@ -1,4 +1,4 @@
-class Dealer(private val isAI: Boolean) : Player() {
+class Dealer(private val isAI: Boolean, id: Int, money: Int) : Player(id, money) {
 
     fun showFirstCard() {
         println("The Dealer shows the ${hand.cards[0]}")
@@ -8,20 +8,11 @@ class Dealer(private val isAI: Boolean) : Player() {
         return isAI
     }
 
-    fun autoRunTurn(deck: Deck) {
-        while (hand.value < 17) {
+    fun autoRunTurn(deck: Deck, stopAt: Int) {
+        while (hand.value < stopAt) {
             hand.add(deck.draw())
             println("Dealer hits (${hand.value}):")
             println(hand)
-        }
-    }
-
-    companion object {
-        fun printDealerOptions() {
-            println("What would you like to do?")
-            println("1: Hit")
-            println("2: Stand")
-            println("3: Quit")
         }
     }
 }

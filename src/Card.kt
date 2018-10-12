@@ -4,6 +4,10 @@ class Card(private val suit: String, private val numVal: Int) {
         return numVal
     }
 
+    fun getSuit(): String {
+        return suit
+    }
+
     fun equals(other: Card): Boolean {
         return numVal == other.numVal
     }

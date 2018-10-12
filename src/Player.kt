@@ -1,23 +1,26 @@
-open class Player {
-    var money = 100
+open class Player(var id: Int, var money: Int) {
+    var bet = 0
     val hands = mutableListOf(Hand(null))
+    var folded = false
+    var busted = false
 
     val hand: Hand
         get() = hands[0]
 
-    fun resetHands() {
+    fun reset() {
+        folded = false
+        busted = false
+        bet = 0
         hands.clear()
         hands.add(Hand(null))
     }
 
     companion object {
-        fun printPlayerOptions() {
+        fun printPlayerOptions(options: MutableList<String>) {
             println("What would you like to do?")
-            println("1: Hit")
-            println("2: Stand")
-            println("3: Split")
-            println("4: Double Up")
-            println("5: Quit")
+            for ((index, option) in options.iterator().withIndex()) {
+                println("${index + 1}: $option")
+            }
         }
     }
 }

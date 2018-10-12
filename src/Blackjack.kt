@@ -1,7 +1,36 @@
 import kotlin.system.exitProcess
 
 class Blackjack : CardGame() {
-    val players = mutableListOf(Player())
+    override fun runRound(deck: Deck) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun runPlayerTurn(player: Player, deck: Deck) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun setPlayerBet(player: Player) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun runDealerTurn(dealer: Dealer, deck: Deck) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun compareHands(players: MutableList<Player>) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun calculateHandValue(hand: Hand): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun dealCards(players: MutableList<Player>, deck: Deck, cardsToDeal: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    /*
+    //val players = mutableListOf(Player())
     var playerBusted = false
     var dealerBusted = false
     var bet = 0
@@ -251,5 +280,5 @@ class Blackjack : CardGame() {
                 else -> println("Hand ${index + 1} results in a draw!")
             }
         }
-    }
+    }*/
 }
