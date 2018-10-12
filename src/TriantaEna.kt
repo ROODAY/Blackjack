@@ -2,10 +2,6 @@ import kotlin.system.exitProcess
 
 class TriantaEna: CardGame() {
 
-    override fun calculateHandValue(hand: Hand): Int {
-        return 1
-    }
-
     override fun dealCards(players: MutableList<Player>, deck: Deck, cardsToDeal: Int) {
         for (player in players) {
             for (i in 1..cardsToDeal) player.hand.add(deck.draw())

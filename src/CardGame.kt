@@ -25,7 +25,7 @@ abstract class CardGame {
 
                     players.shuffle()
 
-                    println("Player ${players.indexOf(players.find { it is Dealer }) + 1} is the Dealer!")
+                    println("Person ${players.indexOf(players.find { it is Dealer }) + 1} is the Dealer!")
                     choosing = false
                 }
                 else -> println("Invalid input! Please try again.")
@@ -54,5 +54,5 @@ abstract class CardGame {
     abstract fun runPlayerTurn(player: Player, deck: Deck)
     abstract fun runDealerTurn(dealer: Dealer, deck: Deck)
     abstract fun compareHands(players: MutableList<Player>)
-    abstract fun calculateHandValue(hand: Hand): Int
+    //abstract fun calculateHandValue(hand: Hand): Int
 }

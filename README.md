@@ -3,7 +3,7 @@ Implementation of Blackjack in Kotlin for CS 591 D1
 
 # How to run
 In IntelliJ, simply run the Blackjack.kt file. To run in command line,
-run `java -jar out/artifacts/Blackjack_jar/blackjack.jar`.
+run `java -jar out/artifacts/Blackjack_jar/Blackjack.jar`.
 
 # Object Design Specification
 
